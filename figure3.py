@@ -4,6 +4,23 @@ import matplotlib.pyplot as plt
 from plotting_convention import mark_subplots, simplify_axes
 import parameters as params
 
+import argparse
+
+
+parser = argparse.ArgumentParser()
+parser.add_argument('--directory', '-d',
+                    default='results',
+                    dest='results',
+                    help='a path to the result directory')
+parser.add_argument('--sri98-no-bn1',
+                    action='store_const',
+                    const='Sri98_no_bn1',
+                    default='Sri98',
+                    dest='sri98',
+                    help='a path to the result directory')
+
+args = parser.parse_args()
+
 # Homogeneous infinite medium
 k = 100. # scaling factor --> give results in ~10 micro V
 I = 1.*k
@@ -16,10 +33,11 @@ phi_20_fit = (34.1*np.exp(-0.15*theta) + 1.29 - (0.123*theta) + 0.00164*(theta**
 phi_40_fit = (27.4*np.exp(-0.10*theta) - 5.49 + (0.203*theta) - 0.00234*(theta**2))*phi_0
 phi_80_fit = (13.4*np.exp(-0.10*theta) - 0.155 - (0.0135*theta))*phi_0
 
-nunsri06 = np.load(os.path.join('results', 'Analytical_NunSri06_rad.npz'))
-sri98 = np.load(os.path.join('results', 'Analytical_Sri98_rad.npz'))
-analytical = np.load(os.path.join('results', 'Analytical_rad.npz'))
-numerical = np.load(os.path.join('results', 'Numerical_rad.npz'))
+nunsri06 = np.load(os.path.join(args.results, 'Analytical_NunSri06_rad.npz'))
+sri98 = np.load(os.path.join(args.results,
+                             'Analytical_{.sri98}_rad.npz'.format(args)))
+analytical = np.load(os.path.join(args.results, 'Analytical_rad.npz'))
+numerical = np.load(os.path.join(args.results, 'Numerical_rad.npz'))
 
 phi_20 = nunsri06['phi_20'].reshape(180, 180)[:, 0][0:90]*k
 phi_20_98 = sri98['phi_20'].reshape(180, 180)[:, 0][0:90]*k
@@ -94,6 +112,6 @@ fig.legend(lines, line_names, frameon=False, ncol=1, bbox_to_anchor=[1.01, 0.85]
 
 simplify_axes(fig.axes)
 mark_subplots(fig.axes, ypos=1.07, xpos=-0.)
-# plt.savefig(os.path.join('results', 'Potentials_scaled.png'), dpi=150)
-# plt.savefig(os.path.join('results', 'figure3.eps'), dpi=150)
+# plt.savefig(os.path.join(args.results, 'Potentials_scaled.png'), dpi=150)
+# plt.savefig(os.path.join(args.results, 'figure3.eps'), dpi=150)
 # plt.show()

@@ -1,8 +1,21 @@
 import numpy as np
 import matplotlib.pyplot as plt
+import os.path
+import argparse
 
-analy = np.load('./results/Analytical_correct_all.npz')
-calc_ = np.load('./results/CalcPotential4_correct_all.npz')
+
+parser = argparse.ArgumentParser()
+parser.add_argument('--directory', '-d',
+                    default='results',
+                    dest='results',
+                    help='a path to the result directory')
+
+args = parser.parse_args()
+
+analy = np.load(os.path.join(args.results,
+                             'Analytical_correct_all.npz'))
+calc_ = np.load(os.path.join(args.results,
+                             'CalcPotential4_correct_all.npz'))
 
 for key_val in analy.keys():
     plt.close('all')
@@ -12,4 +25,5 @@ for key_val in analy.keys():
     plt.subplot(122)
     plt.imshow(calc_[key_val], cmap=plt.cm.PRGn)
     plt.colorbar()
-    plt.savefig(key_val + '.png')
+    plt.savefig(os.path.join(args.results,
+                             key_val + '.png'))

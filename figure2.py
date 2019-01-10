@@ -8,7 +8,18 @@ import os
 import parameters as params
 from matplotlib import colors
 
-print 'load data'
+import argparse
+
+
+parser = argparse.ArgumentParser()
+parser.add_argument('--directory', '-d',
+                    default='results',
+                    dest='results',
+                    help='a path to the result directory')
+
+args = parser.parse_args()
+
+print('load data')
 # import EEG on sphere computed analytically and numerically
 # these are computed with current input = 1 microA
 # dipole length = .1 cm (dipole moment units = 10^-9 Am)
@@ -16,13 +27,13 @@ print 'load data'
 # in order to get results in normal EEG magnitude: 10-100 micro V
 # we give current input = 100 micro A
 k = 100  # scaling factor --> give results in ~10 micro V
-ana_rad = np.load(os.path.join("results", "Analytical_rad.npz"))['phi_20']*k
-ana_tan = np.load(os.path.join("results", "Analytical_tan.npz"))['phi_20']*k
-ana_mix = np.load(os.path.join("results", "Analytical_mix.npz"))['phi_20']*k
+ana_rad = np.load(os.path.join(args.results, "Analytical_rad.npz"))['phi_20']*k
+ana_tan = np.load(os.path.join(args.results, "Analytical_tan.npz"))['phi_20']*k
+ana_mix = np.load(os.path.join(args.results, "Analytical_mix.npz"))['phi_20']*k
 
-num_rad = np.load(os.path.join("results", "Numerical_rad.npz"))['fem_20']*k
-num_tan = np.load(os.path.join("results", "Numerical_tan.npz"))['fem_20']*k
-num_mix = np.load(os.path.join("results", "Numerical_mix.npz"))['fem_20']*k
+num_rad = np.load(os.path.join(args.results, "Numerical_rad.npz"))['fem_20']*k
+num_tan = np.load(os.path.join(args.results, "Numerical_tan.npz"))['fem_20']*k
+num_mix = np.load(os.path.join(args.results, "Numerical_mix.npz"))['fem_20']*k
 
 fem_list = [num_rad, num_tan, num_mix]
 ana_list = [ana_rad, ana_tan, ana_mix]
@@ -30,6 +41,7 @@ ana_list = [ana_rad, ana_tan, ana_mix]
 fem_list = [ii.reshape(180, 180) for ii in fem_list]
 ana_list = [ii.reshape(180, 180) for ii in ana_list]
 error_list = [np.abs(ii - jj) for ii, jj in zip(fem_list, ana_list)]
+error_max = [np.max(ii) for ii in error_list]
 
 # RE_list = [np.abs(ii)/np.abs(jj) for ii, jj in zip(error_list, ana_list)]
 # A = np.array(RE_list).flatten()
@@ -45,8 +57,8 @@ max_abs_eeg = np.max(np.abs([ana_tan, ana_rad, ana_mix])) # max normalization
 # scaled_error_list0 = [error_list[i]/mean_abs_eeg for i in range(3)]  # average normalization
 scaled_error_list = [error_list[i]/max_abs_eeg for i in range(3)] # max normalization
 # scaled_error_list = [error_list[i]/max_1promille for i in range(3)]
-print 'Error max for rad, tan, mix: ', error_max
-print 'Abs max for rad, tan, min', [np.max(np.abs(ii)) for ii in ana_list]
+print('Error max for rad, tan, mix: ', error_max)
+print('Abs max for rad, tan, min', [np.max(np.abs(ii)) for ii in ana_list])
 
 
 I = 1.0*k
@@ -64,7 +76,7 @@ for dipole in dipole_list:
     name_list.append(dipole["name"])
 rz1 = np.array([0, 0, 7.8])
 # create array with 2D electrode positions for plotting geometry
-print 'creating positions for plotting 2d geometry'
+print('creating positions for plotting 2d geometry')
 Radii = [79000., 80000., 85000., 90000.]
 R = 90000.
 ys = np.linspace(-R, R, 1001)
@@ -94,7 +106,7 @@ subd_markers = np.array(subdomain_markers).reshape(len(ys), len(zs))
 
 
 # create color lists for plotting of potentials and error
-print 'creating color lists'
+print('creating color lists')
 vmax = 10
 vmin = -vmax
 clr = lambda phi: plt.cm.PRGn((phi - vmin) / (vmax - vmin))
@@ -108,9 +120,9 @@ colors_4s_list = [clr(ana_list[idx]) for idx in range(3)]
 colors_fem_list = [clr(fem_list[idx]) for idx in range(3)]
 # colors_error_list = [clr_error(error_list[idx]) for idx in range(3)]
 colors_scaled_error_list = [clr_error(scaled_error_list[idx]) for idx in range(3)]
-print 'max_RE', np.max(RE_list)
-colors_RE_list = [clr_RE(RE_list[idx]) for idx in range(3)]
-print 'colors_4s created, ready for plotting'
+# print('max_RE', np.max(RE_list))
+# colors_RE_list = [clr_RE(RE_list[idx]) for idx in range(3)]
+print('colors_4s created, ready for plotting')
 
 #############################################################################
 ################################# plotting ##################################
@@ -158,9 +170,9 @@ for ax, P1 in zip([ax1, ax5, ax9], P1s):
     rz = rz1*1e4
     arrow = np.sum(P1, axis = 0)*1800
     start_pos = rz -np.array([0,0,500])- arrow
-    print'start-pos',  start_pos
-    print 'arrow', arrow
-    print 'P1', P1
+    print('start-pos',  start_pos)
+    print('arrow', arrow)
+    print('P1', P1)
     ax.arrow(start_pos[1], start_pos[2],
               2*arrow[1], 2*arrow[2],
               fc='k',
@@ -172,7 +184,7 @@ for ax, P1 in zip([ax1, ax5, ax9], P1s):
     ax.plot(rz[1], rz[2]-100, 'ro', ms=4)
     ax.axis('off')
 # plot analytically calculated potentials
-print 'reshaping XYZ'
+print('reshaping XYZ')
 X = params.x_points.reshape(180, 180)
 Y = params.y_points.reshape(180, 180)
 Z = params.z_points.reshape(180, 180)
@@ -180,19 +192,19 @@ Z = params.z_points.reshape(180, 180)
 for ax, clrs in zip([ax2, ax6, ax10], colors_4s_list):
     surf1 = ax.plot_surface(X, Y, Z, rstride=1, cstride=1, facecolors=clrs,
                              linewidth=0, antialiased=False)
-print 'surf1 OK'
+print('surf1 OK')
 # plot FEM-computed potentials
 for ax, clrs in zip([ax3, ax7, ax11], colors_fem_list):
     surf2 = ax.plot_surface(X, Y, Z, rstride=1, cstride=1, facecolors=clrs,
                              linewidth=0, antialiased=False)
-print 'surf2 OK'
+print('surf2 OK')
 # plot errors
 # for ax, clrs in zip([ax4, ax8, ax12], colors_error_list):
 for ax, clrs in zip([ax4, ax8, ax12], colors_scaled_error_list):
 # for ax, clrs in zip([ax4, ax8, ax12], colors_RE_list):
     surf3 = ax.plot_surface(X, Y, Z, rstride=1, cstride=1, facecolors = clrs,#cmap=plt.cm.Blues,
                    linewidth=0, antialiased=False)  #, norm=colors.LogNorm(vmin=1e-7, vmax=1e-2))
-print 'surf3 OK'
+print('surf3 OK')
 for ax in [ax2, ax3, ax4, ax6, ax7, ax8, ax10, ax11, ax12]:
     ax.set_aspect('equal')
     ax.axis('off')
@@ -201,12 +213,14 @@ for ax in [ax2, ax3, ax4, ax6, ax7, ax8, ax10, ax11, ax12]:
     ax.set_ylim3d(-6.5000, 6.5000)
     ax.set_zlim3d(0.25-6.5000, 0.25+6.5000)
     ax.view_init(10, 0)
-print 'axes ok'
+print('axes ok')
 
 
 # plt.show()
 
-# plt.savefig('./results/eeg_fig_scaled.pdf', dpi=600., bbox_inches='tight')
+# plt.savefig(os.path.join(args.results,
+#                          'eeg_fig_scaled.pdf'),
+#             dpi=600., bbox_inches='tight')
 
 
 # colorbars
@@ -323,8 +337,14 @@ fig.text(0.75, .34, 'L',
 
 fig.set_size_inches(6.5, 6.)
 # plt.show()
-print 'saving figure'
+print('saving figure')
 # fig.tight_layout()
-# plt.savefig('./results/figure2_w_scaled_glob_avg_strength_error.png', dpi=300., bbox_inches='tight')
-plt.savefig('./results/figure2_w_scaled_glob_max.png', dpi=300., bbox_inches='tight')
-# plt.savefig('./results/figure2_w_RE.png', dpi=300., bbox_inches='tight')
+# plt.savefig(os.path.join(args.results,
+#                          'figure2_w_scaled_glob_avg_strength_error.png'),
+#             dpi=300., bbox_inches='tight')
+plt.savefig(os.path.join(args.results,
+                         'figure2_w_scaled_glob_max.png'),
+            dpi=300., bbox_inches='tight')
+# plt.savefig(os.path.join(args.results,
+#                          'figure2_w_RE.png'),
+#             dpi=300., bbox_inches='tight')

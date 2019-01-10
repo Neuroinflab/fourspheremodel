@@ -5,8 +5,26 @@ import matplotlib.pyplot as plt
 from plotting_convention import mark_subplots, simplify_axes
 import parameters as params
 import sys
-reload(sys)
-sys.setdefaultencoding('UTF-8')
+#from importlib import reload
+#reload(sys)
+#sys.setdefaultencoding('UTF-8')
+
+import argparse
+
+
+parser = argparse.ArgumentParser()
+parser.add_argument('--directory', '-d',
+                    default='results',
+                    dest='results',
+                    help='a path to the result directory')
+parser.add_argument('--sri98-no-bn1',
+                    action='store_const',
+                    const='Sri98_no_bn1',
+                    default='Sri98',
+                    dest='sri98',
+                    help='a path to the result directory')
+
+args = parser.parse_args()
 
 # Homogeneous sphere, Nunez 2006, Eq. 6.7
 k = 100 #to get answer in 10-100 µV
@@ -22,9 +40,10 @@ scnd_trm = (1./f)*((1/(K)**0.5) - 1.)
 prod = frst_trm + scnd_trm
 phi_sphere = I*d*prod / (4*np.pi*params.sigma_brain*(params.scalp_rad**2))
 
-nunsri06 = np.load(os.path.join('results', 'Analytical_NunSri06_rad.npz'))
-sri98 = np.load(os.path.join('results', 'Analytical_Sri98_rad.npz'))
-analytical = np.load(os.path.join('results', 'Analytical_rad.npz'))
+nunsri06 = np.load(os.path.join(args.results, 'Analytical_NunSri06_rad.npz'))
+sri98 = np.load(os.path.join(args.results,
+                             'Analytical_{.sri98}_rad.npz'.format(args)))
+analytical = np.load(os.path.join(args.results, 'Analytical_rad.npz'))
 
 phi_nunsri06 = nunsri06['phi_lim'].reshape(180, 180)[:, 0][0:90] * k
 phi_sri98 = sri98['phi_lim'].reshape(180, 180)[:, 0][0:90] * k
@@ -54,6 +73,6 @@ plt.title('$\sigma_{\mathrm{skull}} = \sigma_{\mathrm{brain}} = \sigma_{\mathrm{
 plt.legend(frameon=False, bbox_to_anchor=(1, 0.9), fontsize=11)
 simplify_axes(fig.axes)
 
-# plt.savefig(os.path.join('results', 'figure4_scaled.png'), dpi=150)
-plt.savefig(os.path.join('results', 'figure4.eps'), dpi=150)
+# plt.savefig(os.path.join(args.results, 'figure4_scaled.png'), dpi=150)
+plt.savefig(os.path.join(args.results, 'figure4.eps'), dpi=150)
 # plt.show()

@@ -3,6 +3,8 @@ import numpy as np
 from scipy.special import lpmv
 import parameters as params
 
+import argparse
+
 
 def V(n):
     k = (n+1.) / n
@@ -77,7 +79,7 @@ def H(n, r_ele=params.scalp_rad):
         T1 = ((r_ele / params.scalp_rad)**n) * A4(n)
         T2 = ((params.scalp_rad / r_ele)**(n + 1)) * B4(n)
     else:
-        print "Invalid electrode position"
+        print("Invalid electrode position")
         return
     return (T1 + T2)
 
@@ -159,6 +161,17 @@ def compute_phi(s12, s23, s34, I):
     return (rad_phi + tan_phi) / (4 * np.pi * params.sigma_brain * (rz**2))
 
 
+parser = argparse.ArgumentParser()
+parser.add_argument('--directory', '-d',
+                    default='results',
+                    dest='results',
+                    help='a path to the result directory')
+
+args = parser.parse_args()
+
+if not os.path.exists(args.results):
+    os.makedirs(args.results)
+
 # scalp_rad = scalp_rad - rad_tol
 rz = params.dipole_loc
 rz1 = rz / params.brain_rad
@@ -175,7 +188,7 @@ I = 1.
 n = np.arange(1, 100)
 
 for dipole in params.dipole_list:
-    print 'Now computing for dipole: ', dipole['name']
+    print('Now computing for dipole: ', dipole['name'])
     src_pos = dipole['src_pos']
     snk_pos = dipole['snk_pos']
 
@@ -191,10 +204,9 @@ for dipole in params.dipole_list:
     s12 = s23 = s34 = 1.
     phi_lim = compute_phi(s12, s23, s34, I)
 
-    f = open(os.path.join('results',
-                          'Analytical_' + dipole['name'] + '.npz'), 'w')
-    np.savez(f, phi_20=phi_20, phi_40=phi_40, phi_80=phi_80, phi_lim=phi_lim)
-    f.close()
+    with open(os.path.join(args.results,
+                           'Analytical_' + dipole['name'] + '.npz'), 'wb') as f:
+        np.savez(f, phi_20=phi_20, phi_40=phi_40, phi_80=phi_80, phi_lim=phi_lim)
 
 # s12, s23, s34 = conductivity(params.sigma_skull20)
 # phis = []
@@ -242,7 +254,7 @@ for dipole in params.dipole_list:
 # snk_pos = [0.0, 0.0, 7.85]
 # phis.append(compute_phi(s12, s23, s34, I))
 
-# f = open(os.path.join('./results/Analytical_correct_all.npz'), 'w')
+# f = open(os.path.join(args.results, 'Analytical_correct_all.npz'), 'w')
 # np.savez(f, phis[0],phis[1],phis[2],phis[3],phis[4],phis[5],phis[6],phis[7], phis[8], phis[9])
 # f.close()
 
@@ -255,7 +267,7 @@ for dipole in params.dipole_list:
 # plt.contourf(params.theta.reshape(180,180), params.phi_angle.reshape(180,180), phi_20.reshape(180,180), cmap='PRGn')
 # plt.colorbar()
 # plt.figure()
-# numerical = np.load(os.path.join('results', 'Numerical_rad.npz'))
+# numerical = np.load(os.path.join(args.results, 'Numerical_rad.npz'))
 # num_20 = numerical['fem_20'].reshape(180, 180)
 # plt.contourf(params.theta.reshape(180,180), params.phi_angle.reshape(180,180), num_20.reshape(180,180), cmap='PRGn')
 # plt.colorbar()

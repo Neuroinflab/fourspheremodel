@@ -7,6 +7,17 @@ from mpl_toolkits.axes_grid.inset_locator import inset_axes
 import os
 import parameters as params
 
+import argparse
+
+
+parser = argparse.ArgumentParser()
+parser.add_argument('--directory', '-d',
+                    default='results',
+                    dest='results',
+                    help='a path to the result directory')
+
+args = parser.parse_args()
+
 I = 1.0
 dipole_list = params.dipole_list
 P1s = []
@@ -21,13 +32,13 @@ for dipole in dipole_list:
     name_list.append(dipole["name"])
 
 scaling_k = 100.
-ana_rad = np.load(os.path.join("results", "Analytical_rad.npz"))['phi_20']*scaling_k
-ana_tan = np.load(os.path.join("results", "Analytical_tan.npz"))['phi_20']*scaling_k
-ana_mix = np.load(os.path.join("results", "Analytical_mix.npz"))['phi_20']*scaling_k
+ana_rad = np.load(os.path.join(args.results, "Analytical_rad.npz"))['phi_20']*scaling_k
+ana_tan = np.load(os.path.join(args.results, "Analytical_tan.npz"))['phi_20']*scaling_k
+ana_mix = np.load(os.path.join(args.results, "Analytical_mix.npz"))['phi_20']*scaling_k
 
-num_rad = np.load(os.path.join("results", "Numerical_rad.npz"))['fem_20']*scaling_k
-num_tan = np.load(os.path.join("results", "Numerical_tan.npz"))['fem_20']*scaling_k
-num_mix = np.load(os.path.join("results", "Numerical_mix.npz"))['fem_20']*scaling_k
+num_rad = np.load(os.path.join(args.results, "Numerical_rad.npz"))['fem_20']*scaling_k
+num_tan = np.load(os.path.join(args.results, "Numerical_tan.npz"))['fem_20']*scaling_k
+num_mix = np.load(os.path.join(args.results, "Numerical_mix.npz"))['fem_20']*scaling_k
 
 fem_list = [num_rad, num_tan, num_mix]
 ana_list = [ana_rad, ana_tan, ana_mix]
@@ -39,8 +50,8 @@ error_max = [np.max(ii) for ii in error_list]
 
 abs_max_val = [np.max(np.abs(ii)) for ii in ana_list]
 abs_max_range = [0.3 * ii for ii in abs_max_val]
-print 'Error max for rad, tan, mix: ', error_max
-print 'Abs max for rad, tan, min', [np.max(np.abs(ii)) for ii in ana_list]
+print('Error max for rad, tan, mix: ', error_max)
+print('Abs max for rad, tan, min', [np.max(np.abs(ii)) for ii in ana_list])
 
 
 def set_axis(ax, letter):
@@ -229,5 +240,7 @@ cbar = plt.colorbar(im_error, cax=cax_error, orientation='horizontal',
 cbar.ax.set_xticklabels(['0.0', '0.1', '0.2', '0.3'])
 cbar.set_label(r'%')
 
-plt.savefig('figure2_alt.jpeg', dpi=500)
+plt.savefig(os.path.join(args.results,
+                         'figure2_alt.jpeg'),
+            dpi=500)
 #plt.show()
